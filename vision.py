@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""
-vision_openrouter.py
-- Capture full-screen screenshot every INTERVAL seconds
-- Optionally blur a sensitive area (like center) to avoid sending passwords
-- Send image to OpenRouter Llama 3.2 11B Vision-Instruct
-- Print and append model's text description to a log file
-"""
-#amit bahi h apana
 import os
 import time
 import base64
@@ -42,7 +33,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load API key
-API_KEY = "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"
+API_KEY = "" # or JUST USE OLLAMA/ OR OPEN SOURCE MODEL FROM TRANSFORMER :) MAKE SURE U HAV ENOUGH SPECS TO RUN IT
 if not API_KEY:
     raise RuntimeError("Please set OPENROUTER_API_KEY in environment or .env file.")
 
