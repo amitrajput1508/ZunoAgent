@@ -2,8 +2,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
 
-# Load the offline model (loads once)
-# NOT ABLE TO upload IT BECAUSE SIZE WAS 5 GB .
+
 MODEL_PATH = "./qwen2.5-3b-instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
@@ -23,7 +22,6 @@ def get_llm_response(prompt: str, code_only: bool = False) -> str:
     - code_only: if True, return only raw code.
     """
 
-    # system instruction logic preserved from your code
     if code_only:
         system_instruction = (
             "Respond with code only. No markdown, no triple backticks, "
@@ -40,7 +38,6 @@ def get_llm_response(prompt: str, code_only: bool = False) -> str:
             "Stay in character: you are a powerful assistant, not a chatbot. Keep answers professional."
         )
 
-    # Format into chat template style for Qwen
     full_prompt = (
         f"<|system|>{system_instruction}</s>"
         f"<|user|>{prompt.strip()}</s>"
@@ -58,10 +55,9 @@ def get_llm_response(prompt: str, code_only: bool = False) -> str:
             eos_token_id=tokenizer.eos_token_id,
         )
 
-    # decode
+   
     response = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-    # Remove the system/user text, leaving only assistant output
     if "<|assistant|>" in response:
         response = response.split("<|assistant|>")[-1].strip()
 
