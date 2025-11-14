@@ -24,7 +24,7 @@ import struct
 VISION_INTERVAL = 15  # seconds between screenshots
 VISION_MODEL = "meta-llama/llama-3.2-11b-vision-instruct"
 VISION_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-VISION_API_KEY = "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"
+VISION_API_KEY = ""
 VISION_OUTPUT_DIR = Path("screen_logs")
 VISION_SCREENSHOT_DIR = VISION_OUTPUT_DIR / "screenshots"
 VISION_LOG_FILE = VISION_OUTPUT_DIR / "descriptions.log"
@@ -38,7 +38,7 @@ VISION_SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
 
 class WakeWordDetector:
     def __init__(self, access_key=None):
-        self.access_key = access_key or "XeG4jBYwxv1wRUaaRJROxxrKZJwZHUeVF6KM275WJODvdSIjZugi2Q=="
+        self.access_key = access_key
         self.is_listening = False
         self.callback = None
         self.porcupine = None
