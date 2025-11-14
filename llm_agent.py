@@ -4,7 +4,7 @@ import torch
 
 # Load the offline model (loads once)
 # NOT ABLE TO upload IT BECAUSE SIZE WAS 5 GB .
-MODEL_PATH = "./qwen2.5-4b-instruct"
+MODEL_PATH = "./qwen2.5-3b-instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(
