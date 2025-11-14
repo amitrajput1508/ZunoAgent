@@ -41,7 +41,7 @@ import tempfile
 import playsound
 from gtts import gTTS
 import speech_recognition as sr
-import json5  # For parsing lenient JSON from LLM
+import json5  
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -53,27 +53,22 @@ from labs import (
     run_hallucination_lab
 )
 
-# ========== CONFIGURATION ==========
 CHROMEDRIVER_PATH = "/usr/bin/chromedriver"
 BRAVE_PATH = "/usr/bin/brave"
 CHROME_PATH = "/usr/bin/google-chrome"
 WHATSAPP_PROFILE_DIR = "/home/amitr/.config/whatsapp_final_session"
 
-# ========== GOOGLE CALENDAR CONFIGURATION ==========
-CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar"]
+\CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CALENDAR_CREDENTIALS_FILE = 'credentials.json'
 CALENDAR_TOKEN_FILE = 'calendar_token.pickle'
 
-# ========== PERMANENT MEMORY CONFIGURATION ==========
 CHAT_HISTORY_FILE = "chat_history.json"
 FACTS_FILE = "permanent_facts.json"
 SESSION_CONTEXT_FILE = "session_context.json"
 
-# ========== BROWSER CONFIGURATION ==========
 PROFILE_PATH = "/home/anas/.config/BraveSoftware/Brave-Browser/Default"
 BRAVE_BINARY = "/usr/bin/brave"
 
-# --- Browser Session State ---
 browser_session = {
     "driver": None,
     "current_url": None,
@@ -84,11 +79,10 @@ browser_session = {
 try:
     from llm_agent import get_llm_response
 except ImportError:
-    # If llm_agent.py is not found, use this placeholder for testing
     print("WARNING: 'llm_agent.py' not found. Using a simple placeholder. Agent will have limited intelligence.")
     def get_llm_response(prompt, code_only=False):
         print("--- (Placeholder) PROMPT ---")
-        print(prompt[-300:]) # Print last 300 chars
+        print(prompt[-300:]) 
         print("--------------")
         
         user_msg = prompt.split("User message:")[-1].strip().lower()
@@ -106,9 +100,7 @@ except ImportError:
         if "create a file" in user_msg:
             return '{"action":"create_file", "folder_path":"~/Documents", "filename":"test.txt", "content":"Hello!"}'
         
-        # Default fallback
         return '{"action":"chat", "message":"I am not sure how to respond to that."}'
-# --- End of LLM Placeholder ---
 
 class ZunoWakeWord:
     def __init__(self):
@@ -119,9 +111,8 @@ class ZunoWakeWord:
         self.command_queue = queue.Queue()
         self.is_awake = False
         self.last_wake_time = 0
-        self.wake_timeout = 10  # seconds
+        self.wake_timeout = 10  
 
-        # Adjust for ambient noise
         print("🎙️ Calibrating microphone for ambient noise...")
         try:
             with self.microphone as source:
@@ -134,9 +125,7 @@ class ZunoWakeWord:
         """Background thread that listens for 'Hey Zuno'"""
         while self.is_listening:
             try:
-                # print("🔇 Sleeping... waiting for 'Hey Zuno'")
                 with self.microphone as source:
-                    # Listen for wake word
                     audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=3)
 
                 try:
@@ -145,7 +134,6 @@ class ZunoWakeWord:
 
                     if self.wake_word in text:
                         self.wake_up()
-                        # Extract command if said together
                         command = text.replace(self.wake_word, "").strip()
                         if command:
                             self.command_queue.put(command)
@@ -207,25 +195,20 @@ class ZunoWakeWord:
         """Stop the wake word detection"""
         self.is_listening = False
 
-# Global wake word detector instance
 wake_detector = ZunoWakeWord()
 
 def speak_response(text: str):
     if not text:
         return
     try:
-        # Generate speech
         tts = gTTS(text=text, lang='en')
 
-        # Save to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
             temp_path = fp.name
         tts.save(temp_path)
 
-        # Play the audio
         playsound.playsound(temp_path)
 
-        # Remove the temp file
         os.remove(temp_path)
 
     except Exception as e:
@@ -237,12 +220,10 @@ def get_calendar_service():
     """Google Calendar service setup"""
     creds = None
 
-    # Load stored OAuth token if available
     if os.path.exists(CALENDAR_TOKEN_FILE):
         with open(CALENDAR_TOKEN_FILE, "rb") as token:
             creds = pickle.load(token)
 
-    # Refresh token OR run full authentication
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -255,7 +236,6 @@ def get_calendar_service():
             )
             creds = flow.run_local_server(port=0)
 
-        # Save updated token
         with open(CALENDAR_TOKEN_FILE, "wb") as token:
             pickle.dump(creds, token)
 
@@ -272,7 +252,6 @@ def schedule_meet(title, date, start_time, end_time, attendees_list=None, timezo
         return None, error
 
     try:
-        # Convert input to RFC3339 format
         start = f"{date}T{start_time}:00"
         end   = f"{date}T{end_time}:00"
 
@@ -290,7 +269,6 @@ def schedule_meet(title, date, start_time, end_time, attendees_list=None, timezo
             },
             "attendees": attendees,
 
-            # This block is REQUIRED for auto-creating Google Meet links
             "conferenceData": {
                 "createRequest": {
                     "conferenceSolutionKey": {"type": "hangoutsMeet"},
@@ -304,13 +282,12 @@ def schedule_meet(title, date, start_time, end_time, attendees_list=None, timezo
             .insert(
                 calendarId="primary",
                 body=event,
-                conferenceDataVersion=1,  # IMPORTANT
-                sendUpdates="all",        # send email invites automatically
+                conferenceDataVersion=1,  
+                sendUpdates="all",        
             )
             .execute()
         )
 
-        # Safely extract Meet link
         meet_link = None
         try:
             meet_link = created_event["conferenceData"]["entryPoints"][0]["uri"]
@@ -332,14 +309,12 @@ def parse_meeting_command(user_message):
     """Manual parsing of meeting commands"""
     print(f"🔍 Parsing meeting command: {user_message}")
     
-    # Default values
     title = "Meeting"
     date = datetime.now().strftime("%Y-%m-%d")
     start_time = "14:00"
     end_time = "15:00"
     attendees = []
     
-    # Extract title
     title_patterns = [
         r'called\s+([^,.]+)',
         r'for\s+([^,.]+)',
@@ -353,7 +328,6 @@ def parse_meeting_command(user_message):
             title = match.group(1).strip()
             break
     
-    # Extract date
     today = datetime.now()
     if 'tomorrow' in user_message.lower():
         date = (today + timedelta(days=1)).strftime("%Y-%m-%d")
@@ -496,7 +470,6 @@ def do_schedule_meet(title, date, start_time, end_time, attendees):
     except Exception as e:
         return f"❌ Failed to schedule Google Meet: {e}"
 
-# ========== INTERACTIVE EMAIL FUNCTIONS ==========
 
 def ask_yes_no_question(question):
     """Yes/No question पूछें"""
@@ -646,7 +619,6 @@ Output only the email body text, no explanations.
         email_body = get_llm_response(prompt, code_only=False).strip()
         return email_body
     except Exception as e:
-        # Fallback simple email
         return f"Hello,\n\n{user_message}\n\nBest regards,\nLucifer Agent User"
 
 def generate_email_subject(user_message, recipient=""):
@@ -1345,14 +1317,10 @@ def do_search_web(query):
                 return "tech_news"
             return "qa"
 
-        # ================================================================
-        # 1. CLASSIFY QUERY
-        # ================================================================
+      
         qtype = classify_query(query)
 
-        # ================================================================
-        # 2. GOOGLE NEWS FALLBACK
-        # ================================================================
+   
         def google_news_fallback(topic):
             try:
                 base = "https://news.google.com/rss/"
@@ -1397,9 +1365,7 @@ def do_search_web(query):
             except Exception:
                 return None
 
-        # ================================================================
-        # 3. DDGS PRIMARY SEARCH
-        # ================================================================
+      
         def ddgs_search(q, qtype):
             try:
                 with DDGS() as ddgs:
@@ -1412,9 +1378,7 @@ def do_search_web(query):
 
         raw_results = ddgs_search(query, qtype)
 
-        # ================================================================
-        # 4. BUILD CONTEXT
-        # ================================================================
+       
         search_context = ""
 
         if raw_results:
@@ -1448,9 +1412,7 @@ def do_search_web(query):
         if not search_context.strip():
             return f"❌ No useful search results for '{query}'."
 
-        # ================================================================
-        # 6. PROMPT SELECTION
-        # ================================================================
+       
         if qtype in ["news", "tech_news"]:
             llm_prompt = f"""
 Extract the top 3–5 REAL NEWS HEADLINES from the context. 
