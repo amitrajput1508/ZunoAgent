@@ -4,13 +4,8 @@ import subprocess
 from pathlib import Path
 from difflib import SequenceMatcher
 
-# Import LLM engine
 from llm_agent import get_llm_response
 
-
-# ========================================================
-# UTILS (FIXED & SAFE)
-# ========================================================
 
 def normalize_path(path_text: str):
     """
@@ -61,10 +56,6 @@ def run_command(cmd, cwd=None):
         return f"[ERROR] Failed to run command: {e}"
 
 
-# ========================================================
-# ---------- HALLUCINATION STRESS TEST -------------------
-# ========================================================
-
 def hallucination_test(user_query: str):
     """
     Multi-stage hallucination validation.
@@ -89,11 +80,6 @@ def hallucination_test(user_query: str):
         "possible_hallucinations": hallucinations
     }
 
-
-# ========================================================
-# ---------- FILE EXECUTION LAB (FIXED) ------------------
-# ========================================================
-
 def execute_file(filepath: str):
     """
     Main execution engine for: .py, .c, .cpp, .java, .sh
@@ -107,11 +93,9 @@ def execute_file(filepath: str):
     filename = os.path.basename(filepath)
     ext = filepath.split(".")[-1].lower()
 
-    # ---------------- PYTHON ----------------
     if ext == "py":
         return run_command(f"python '{filename}'", cwd=script_dir)
 
-    # ---------------- C++ -------------------
     if ext == "cpp":
         exe = filepath.replace(".cpp", "")
         out = run_command(f"g++ '{filepath}' -o '{exe}' -std=c++17")
@@ -119,7 +103,6 @@ def execute_file(filepath: str):
             return run_command(f"./{os.path.basename(exe)}", cwd=script_dir)
         return out
 
-    # ---------------- C ---------------------
     if ext == "c":
         exe = filepath.replace(".c", "")
         out = run_command(f"gcc '{filepath}' -o '{exe}'")
@@ -127,22 +110,18 @@ def execute_file(filepath: str):
             return run_command(f"./{os.path.basename(exe)}", cwd=script_dir)
         return out
 
-    # ---------------- JAVA ------------------
     if ext == "java":
         out = run_command(f"javac '{filepath}'")
         classname = os.path.splitext(filename)[0]
         return run_command(f"java '{classname}'", cwd=script_dir)
 
-    # ---------------- SHELL SCRIPT ----------
     if ext == "sh":
         return run_command(f"bash '{filename}'", cwd=script_dir)
 
     return f"[ERROR] Unsupported file type: {ext}"
 
 
-# ========================================================
-# ---------- NATURAL LANGUAGE RUNNER ---------------------
-# ========================================================
+
 
 def run_code_from_natural_input(cmd: str):
     """
@@ -153,7 +132,6 @@ def run_code_from_natural_input(cmd: str):
     - run /home/venom/AI/prediction.py
     """
 
-    # FULL PATH MATCHING — fixed regex
     match = re.search(r'([\~/\w\-\./]+?\.(py|cpp|c|java|sh))', cmd)
     if not match:
         return "[ERROR] No runnable file detected."
@@ -161,11 +139,9 @@ def run_code_from_natural_input(cmd: str):
     raw_path = match.group(1).strip()
     expanded = normalize_path(raw_path)
 
-    # Case 1: User gave an absolute or ~ path
     if os.path.exists(expanded):
         return execute_file(expanded)
 
-    # Case 2: Fuzzy match by filename
     filename_only = os.path.basename(raw_path)
     fuzzy_path = fuzzy_find(filename_only)
 
@@ -175,9 +151,6 @@ def run_code_from_natural_input(cmd: str):
     return f"[ERROR] Could not locate file: {raw_path}"
 
 
-# ========================================================
-# ---------- LAB WRAPPERS (FINAL) ------------------------
-# ========================================================
 
 def run_hallucination_lab(query: str):
     res = hallucination_test(query)
@@ -230,7 +203,6 @@ def run_code_lab(cmd):
         t1.start()
         t2.start()
 
-        # Max execution time 20 seconds
         timeout = 20
         start = time.time()
 
