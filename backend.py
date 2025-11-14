@@ -59,12 +59,6 @@ BRAVE_PATH = "/usr/bin/brave"
 CHROME_PATH = "/usr/bin/google-chrome"
 WHATSAPP_PROFILE_DIR = "/home/amitr/.config/whatsapp_final_session"
 
-# ========== EMAIL CONFIGURATION ==========
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-EMAIL_ADDRESS = "rajputamit1508@gmail.com"  # 👈 YOUR GMAIL
-EMAIL_PASSWORD = "duyu ooxk knsa wnpo"   # 👈 YOUR APP PASSWORD
-
 # ========== GOOGLE CALENDAR CONFIGURATION ==========
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CALENDAR_CREDENTIALS_FILE = 'credentials.json'
@@ -2749,11 +2743,7 @@ Never output any explanation outside of JSON!
             print(f"❌ JSON parse error: {e}")
             print(f"Raw LLM output: {llm_out}")
 
-    # fallback if no valid JSON matched
-    # Return the raw output for debugging, wrapped in a chat action
     return [{"action": "chat", "message": f"LLM Error: {llm_out}"}]
-
-# ========== MAIN ACTION MAPPING ==========
 
 action_mapping = {
     "chat": lambda args: do_chat(args.get("message")),
@@ -2814,9 +2804,6 @@ action_mapping = {
     "list_dir_contents": lambda args: do_list_dir_contents(args.get("path", ""), args.get("type", "all")),
     "setup_python_environment": lambda args: do_setup_python_environment(args.get("project_path"), args.get("packages")),
 }
-
-# ========== MAIN INTENT HANDLER ==========
-
 def handle_intent(user_input):
     user_message = user_input.get('message', '') if isinstance(user_input, dict) else user_input
     
