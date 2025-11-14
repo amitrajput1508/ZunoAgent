@@ -20,8 +20,7 @@ import pvporcupine
 import pyaudio
 import struct
 
-# Vision configuration
-VISION_INTERVAL = 15  # seconds between screenshots
+VISION_INTERVAL = 15 
 VISION_MODEL = "meta-llama/llama-3.2-11b-vision-instruct"
 VISION_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 VISION_API_KEY = ""
@@ -32,7 +31,6 @@ DELETE_SCREENSHOT_AFTER_SEND = True
 BLUR_SENSITIVE_REGION = False
 SENSITIVE_BOX = None
 
-# Create directories if they don't exist
 VISION_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 VISION_SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
 
